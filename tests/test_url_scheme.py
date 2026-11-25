@@ -21,7 +21,7 @@ class TestExecuteUrl:
         execute_url("things:///add?title=Test")
 
         mock_run.assert_called_once_with(
-            ['osascript', '-e', 'do shell script "open -g \\"things:///add?title=Test\\""'],
+            ['osascript', '-e', 'do shell script "open -g -j \\"things:///add?title=Test\\""'],
             check=True, capture_output=True, text=True
         )
 
@@ -37,7 +37,7 @@ class TestExecuteUrl:
         execute_url("things:///add?title=Test")
 
         assert mock_run.call_count == 2
-        mock_run.assert_called_with(['open', '-g', 'things:///add?title=Test'], check=True)
+        mock_run.assert_called_with(["open", "-g", "-j", "things:///add?title=Test"], check=True)
 
 
 class TestAddArea:

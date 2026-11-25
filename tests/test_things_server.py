@@ -386,6 +386,11 @@ async def test_get_tag_usage_empty(mocker):
 
 # --- bulk_update_todos (#22) --------------------------------------------------
 
+def _mock_known_todos(mocker):
+    """Every ID resolves to an existing to-do (bulk updates validate IDs first)."""
+    mocker.patch('things.get', side_effect=lambda uuid, default=None, **kw: {'uuid': uuid, 'type': 'to-do'})
+
+
 def _captured_json_payload(mock_execute_url):
     """Pull the json payload out of the URL handed to execute_url."""
     url = mock_execute_url.call_args[0][0]
@@ -410,6 +415,7 @@ async def test_bulk_update_todos_no_changes(mocker):
 
 @pytest.mark.asyncio
 async def test_bulk_update_todos_missing_token(mocker):
+    _mock_known_todos(mocker)
     mocker.patch('things.token', return_value=None)
     mocker.patch('things_mcp.server.url_scheme.execute_url')
     result = await bulk_update_todos(ids=["u1"], list="Shopping")
@@ -418,6 +424,7 @@ async def test_bulk_update_todos_missing_token(mocker):
 
 @pytest.mark.asyncio
 async def test_bulk_update_todos_moves_many_in_one_call(mocker):
+    _mock_known_todos(mocker)
     mocker.patch('things.token', return_value='tok')
     mock_exec = mocker.patch('things_mcp.server.url_scheme.execute_url')
 
@@ -437,6 +444,7 @@ async def test_bulk_update_todos_moves_many_in_one_call(mocker):
 
 @pytest.mark.asyncio
 async def test_bulk_update_todos_list_id_overrides_list_title(mocker):
+    _mock_known_todos(mocker)
     mocker.patch('things.token', return_value='tok')
     mock_exec = mocker.patch('things_mcp.server.url_scheme.execute_url')
 
@@ -449,6 +457,7 @@ async def test_bulk_update_todos_list_id_overrides_list_title(mocker):
 
 @pytest.mark.asyncio
 async def test_bulk_update_todos_complete_and_tag(mocker):
+    _mock_known_todos(mocker)
     mocker.patch('things.token', return_value='tok')
     mock_exec = mocker.patch('things_mcp.server.url_scheme.execute_url')
 

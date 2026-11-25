@@ -178,6 +178,31 @@ def _paginate_result(items, formatter, limit, offset, empty_msg, separator="\n\n
     return ToolResult(content=text, structured_content=structured)
 
 
+_TYPE_LABELS = {"to-do": "to-do", "project": "project", "heading": "heading", "area": "area", "tag": "tag"}
+_UPDATE_TOOL_FOR = {"to-do": "update_todo", "project": "update_project", "area": "update_area"}
+
+
+def _check_item_type(uuid: str, expected: str):
+    """Return an error message if ``uuid`` isn't an existing item of type ``expected``.
+
+    Things silently ignores URL-scheme updates for IDs it can't find (and shows
+    a modal error dialog), so write tools look the ID up first rather than
+    report a success that never happened. Returns None when the ID is valid.
+    """
+    item = things.get(uuid)
+    if item is None:
+        return f"No {expected} found with ID: {uuid}"
+    actual = item.get("type")
+    if actual != expected:
+        label = _TYPE_LABELS.get(actual, actual or "unknown item")
+        hint = _UPDATE_TOOL_FOR.get(actual)
+        msg = f"ID {uuid} is a {label}, not a {expected}."
+        if hint:
+            msg += f" Use {hint} instead."
+        return msg
+    return None
+
+
 def _error_result(msg):
     """ToolResult for an error / early-return path: human-readable text plus a
     structured {"error": msg} so structured-output clients see it too."""
@@ -777,6 +802,9 @@ async def update_todo(
         prepend_checklist_items: Add these items to the start of the existing checklist
         append_checklist_items: Add these items to the end of the existing checklist
     """
+    error = _check_item_type(id, "to-do")
+    if error:
+        return error
     url = url_scheme.update_todo(
         id=id,
         title=title,
@@ -864,6 +892,10 @@ async def bulk_update_todos(
     if not attributes:
         return "No changes specified — pass at least one attribute (list, tags, when, …)."
 
+    errors = [e for e in (_check_item_type(uid, "to-do") for uid in ids) if e]
+    if errors:
+        return "Nothing was changed. " + " ".join(errors)
+
     token = things.token()
     if not token:
         return (
@@ -903,6 +935,9 @@ async def update_project(
         completed: Mark as completed
         canceled: Mark as canceled
     """
+    error = _check_item_type(id, "project")
+    if error:
+        return error
     url = url_scheme.update_project(
         id=id,
         title=title,
