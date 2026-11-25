@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Bug fixes
+
+- **Updates No Longer Report False Success**: `update_todo`, `update_project`, and `bulk_update_todos` now look up each ID first. An unknown ID, or a to-do ID passed to `update_project` (and vice versa), returns an error and sends nothing to Things. Before, Things ignored the update and showed a modal error dialog (which also blocks AppleScript until dismissed) while the tool said "Updated". A bulk update with any bad ID changes nothing.
+- **Hidden Cold Launch**: URL-scheme writes now run `open -g -j`. When Things isn't running, the first write launches it hidden instead of putting its main window on screen behind the active app. No change when Things is already open.
+
 ## v0.8.2 - 2026-10-25
 
 ### Bug fixes

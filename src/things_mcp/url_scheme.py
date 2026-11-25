@@ -30,16 +30,21 @@ def format_when_with_reminder(date: str, time: str) -> str:
     return f"{date}@{time}"
 
 def execute_url(url: str) -> None:
-    """Execute a Things URL without bringing Things to the foreground."""
+    """Execute a Things URL without bringing Things to the foreground.
+
+    ``-g`` keeps Things in the background. ``-j`` launches it hidden when it
+    isn't already running, so a cold start doesn't put its main window on
+    screen; it has no effect when Things is already running and visible.
+    """
     try:
-        # Use 'do shell script' with 'open -g' to open in background
+        # Use 'do shell script' with 'open -g -j' to open in background
         subprocess.run([
             'osascript', '-e',
-            f'do shell script "open -g \\"{url}\\""'
+            f'do shell script "open -g -j \\"{url}\\""'
         ], check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError:
-        # Fallback - still try with open -g directly
-        subprocess.run(['open', '-g', url], check=True)
+        # Fallback - still try with open -g -j directly
+        subprocess.run(['open', '-g', '-j', url], check=True)
 
 
 def add_area(title: str) -> str:
